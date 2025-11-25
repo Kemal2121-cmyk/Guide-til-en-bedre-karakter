@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<title>Fisk & Omega-3 Quiz</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #b7e3ff, #e7f7ff);
+    margin: 0;
+    padding: 20px;
+    color: #003049;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #005f73;
+    margin-bottom: 10px;
+  }
+
+  #quiz, #recipe, #endMessage {
+    max-width: 700px;
+    margin: 20px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  #question {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+
+  button {
+    background: #0077b6;
+    border: none;
+    padding: 12px 30px;
+    margin: 10px;
+    font-size: 1.2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+    transition: 0.25s;
+  }
+  button:hover {
+    background: #0096c7;
+    transform: scale(1.05);
+  }
+
+  .hidden { display: none; }
+
+  #scoreBox {
+    text-align: center;
+    font-size: 1.3rem;
+    margin-top: 10px;
+    color: #005f73;
+    font-weight: bold;
+  }
+
+  ul, ol {
+    font-size: 1.1rem;
+  }
+
+  #endMessage {
+    background: #d2f8d2;
+    border-left: 8px solid #34a853;
+    font-size: 1.2rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Fisk & Omega-3 Quiz</h1>
+
+<div id="scoreBox">Point: 0</div>
+
+<div id="quiz">
+  <p id="question">Er fisk en god kilde til omega-3?</p>
+  <button onclick="answer('ja')">Ja</button>
+  <button onclick="answer('nej')">Nej</button>
+</div>
+
+<div id="recipe" class="hidden">
+  <h2>Laks Sandwich Opskrift</h2>
+  <ul id="ingredients"></ul>
+  <ol id="steps"></ol>
+</div>
+
+<div id="endMessage" class="hidden"></div>
+
+<!-- Lydeffekter -->
+<audio id="correctSound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/active_storage/sfx/2898/2898-preview.mp3"></audio>
+
+<script>
+let step = 0;
+let score = 0;
+
+const scoreBox = document.getElementById("scoreBox");
+
+const questions = [
+  { q: "Er fisk en god kilde til omega-3?", a: "ja" },
+  { q: "Er omega-3 vigtigt for hjernen?", a: "ja" },
+  { q: "Kan fisk hjælpe med at forbedre koncentrationen?", a: "ja" },
+  { q: "Er omega-3 med til at støtte synet og øjnene?", a: "ja" }
+];
+
+const ingredientsList = [
+  "350 g laks",
+  "1-2 poser rucolasalat",
+  "1-2 rødløg",
+  "2 pakker flute",
+  "4 avocadoer",
+  "Dild dressing: dild, cream fraiche, citron, salt og peber"
+];
+
+const stepsList = [
+  "Skyl salaten.",
+  "Grill brødet gyldenbrunt.",
+  "Skær avocado og rødløg.",
+  "Lav dilddressing.",
+  "Hak dild og rør med cream fraiche.",
+  "Smag til med salt, peber og citron."
+];
+
+function answer(userAnswer) {
+  const correct = questions[step].a;
+
+  if (userAnswer !== correct) {
+    document.getElementById("wrongSound").play();
+    alert("Forkert. Prøv igen.");
+    score -= 1;
+    scoreBox.textContent = "Point: " + score;
+    return;
+  }
+
+  document.getElementById("correctSound").play();
+  alert("Korrekt.");
+  score += 2;
+  scoreBox.textContent = "Point: " + score;
+
+  step++;
+
+  updateRecipe();
+
+  if (step < questions.length) {
+    document.getElementById("question").textContent = questions[step].q;
+  } else {
+    document.getElementById("quiz").innerHTML = "<p>Du er færdig.</p>";
+    endMessage();
+  }
+}
+
+function updateRecipe() {
+  const ingredients = document.getElementById("ingredients");
+  ingredients.innerHTML = "";
+  for (let i = 0; i < step*2 && i < ingredientsList.length; i++) {
+    const li = document.createElement("li");
+    li.textContent = ingredientsList[i];
+    ingredients.appendChild(li);
+  }
+
+  const stepsEl = document.getElementById("steps");
+  stepsEl.innerHTML = "";
+  for (let i = 0; i < step*2 && i < stepsList.length; i++) {
+    const li = document.createElement("li");
+    li.textContent = stepsList[i];
+    stepsEl.appendChild(li);
+  }
+
+  document.getElementById("recipe").classList.remove("hidden");
+}
+
+function endMessage() {
+  const box = document.getElementById("endMessage");
+  box.classList.remove("hidden");
+  box.innerHTML = `
+    Super flot klaret.<br><br>
+    Fisk og laks er fyldt med omega-3, som styrker hjernen,
+    forbedrer hukommelsen og øger koncentrationen.<br><br>
+    Det betyder, at du kan spise dig til mere energi og en bedre karakter –
+    noget der hjælper dig i skolen.
+  `;
+}
+</script>
+
+</body>
+</html>
+

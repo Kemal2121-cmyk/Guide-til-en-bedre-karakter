@@ -2,190 +2,149 @@
 <html lang="da">
 <head>
 <meta charset="UTF-8">
-<title>Fisk & Omega-3 Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citron & Ingefær Quiz</title>
+
 <style>
-  body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(to bottom, #b7e3ff, #e7f7ff);
-    margin: 0;
-    padding: 20px;
-    color: #003049;
-  }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 30px;
+        background: linear-gradient(#fff6a9, #ffe45c);
+        background-attachment: fixed;
+    }
 
-  h1 {
-    text-align: center;
-    font-size: 2.5rem;
-    color: #005f73;
-    margin-bottom: 10px;
-  }
+    .container {
+        max-width: 520px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 14px;
+        border: 3px solid #ffcf2f;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    }
 
-  #quiz, #recipe, #endMessage {
-    max-width: 700px;
-    margin: 20px auto;
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
+    h2 {
+        text-align: center;
+        font-weight: bold;
+        color: #d4a400;
+        margin-top: 0;
+    }
 
-  #question {
-    font-size: 1.4rem;
-    margin-bottom: 20px;
-  }
+    button {
+        width: 48%;
+        padding: 12px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #ffd949;
+        font-weight: bold;
+        margin-top: 10px;
+    }
 
-  button {
-    background: #0077b6;
-    border: none;
-    padding: 12px 30px;
-    margin: 10px;
-    font-size: 1.2rem;
-    border-radius: 10px;
-    cursor: pointer;
-    color: white;
-    transition: 0.25s;
-  }
-  button:hover {
-    background: #0096c7;
-    transform: scale(1.05);
-  }
+    button:hover {
+        background: #ffcf28;
+    }
 
-  .hidden { display: none; }
-
-  #scoreBox {
-    text-align: center;
-    font-size: 1.3rem;
-    margin-top: 10px;
-    color: #005f73;
-    font-weight: bold;
-  }
-
-  ul, ol {
-    font-size: 1.1rem;
-  }
-
-  #endMessage {
-    background: #d2f8d2;
-    border-left: 8px solid #34a853;
-    font-size: 1.2rem;
-  }
+    #quiz, #result, #points, #ingredients, #endText {
+        margin-top: 18px;
+        font-weight: bold;
+        white-space: pre-line;
+        color: #494949;
+    }
 </style>
 </head>
+
 <body>
+<div class="container">
+<h2>Citron & Ingefær Quiz</h2>
 
-<h1>Fisk & Omega-3 Quiz</h1>
+<div id="quiz"></div>
 
-<div id="scoreBox">Point: 0</div>
-
-<div id="quiz">
-  <p id="question">Er fisk en god kilde til omega-3?</p>
-  <button onclick="answer('ja')">Ja</button>
-  <button onclick="answer('nej')">Nej</button>
+<p id="result"></p>
+<p id="ingredients"></p>
+<p id="points"></p>
+<p id="endText"></p>
 </div>
 
-<div id="recipe" class="hidden">
-  <h2>Laks Sandwich Opskrift</h2>
-  <ul id="ingredients"></ul>
-  <ol id="steps"></ol>
-</div>
+<!-- LYDEFFEKTER -->
+<audio id="correctSound">
+  <source src="https://actions.google.com/sounds/v1/cartoon/pop.ogg" type="audio/ogg">
+</audio>
 
-<div id="endMessage" class="hidden"></div>
-
-<!-- Lydeffekter -->
-<audio id="correctSound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
-<audio id="wrongSound" src="https://assets.mixkit.co/active_storage/sfx/2898/2898-preview.mp3"></audio>
+<audio id="wrongSound">
+  <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+</audio>
 
 <script>
-let step = 0;
-let score = 0;
-
-const scoreBox = document.getElementById("scoreBox");
-
 const questions = [
-  { q: "Er fisk en god kilde til omega-3?", a: "ja" },
-  { q: "Er omega-3 vigtigt for hjernen?", a: "ja" },
-  { q: "Kan fisk hjælpe med at forbedre koncentrationen?", a: "ja" },
-  { q: "Er omega-3 med til at støtte synet og øjnene?", a: "ja" }
+  { q: "Indeholder citron C-vitamin?", answer: "ja", ingredient: "4 dl koldt vand" },
+  { q: "Hjælper C-vitamin immunforsvaret?", answer: "ja", ingredient: "50 g frisk ingefær" },
+  { q: "Er C-vitamin vandopløseligt?", answer: "ja", ingredient: "2 stk. citroner" },
+  { q: "Er ingefær kendt for at dæmpe inflammation?", answer: "ja", ingredient: "2 spsk. honning" },
+  { q: "Kan et ingefærshot give mere energi i skolen?", answer: "ja", ingredient: "(Alle ingredienser samlet!)" }
 ];
 
-const ingredientsList = [
-  "350 g laks",
-  "1-2 poser rucolasalat",
-  "1-2 rødløg",
-  "2 pakker flute",
-  "4 avocadoer",
-  "Dild dressing: dild, cream fraiche, citron, salt og peber"
-];
+let index = -1;
+let ingredients = [];
+let points = 0;
 
-const stepsList = [
-  "Skyl salaten.",
-  "Grill brødet gyldenbrunt.",
-  "Skær avocado og rødløg.",
-  "Lav dilddressing.",
-  "Hak dild og rør med cream fraiche.",
-  "Smag til med salt, peber og citron."
-];
+function loadNext() {
+    index++;
 
-function answer(userAnswer) {
-  const correct = questions[step].a;
+    document.getElementById("result").innerText = "";
 
-  if (userAnswer !== correct) {
-    document.getElementById("wrongSound").play();
-    alert("Forkert. Prøv igen.");
-    score -= 1;
-    scoreBox.textContent = "Point: " + score;
-    return;
-  }
-
-  document.getElementById("correctSound").play();
-  alert("Korrekt.");
-  score += 2;
-  scoreBox.textContent = "Point: " + score;
-
-  step++;
-
-  updateRecipe();
-
-  if (step < questions.length) {
-    document.getElementById("question").textContent = questions[step].q;
-  } else {
-    document.getElementById("quiz").innerHTML = "<p>Du er færdig.</p>";
-    endMessage();
-  }
+    if (index < questions.length) {
+        const c = questions[index];
+        document.getElementById("quiz").innerHTML = `
+        <h3>${c.q}</h3>
+        <button onclick="answer('ja')">Ja</button>
+        <button onclick="answer('nej')">Nej</button>
+        `;
+    } else {
+        endScreen();
+    }
 }
 
-function updateRecipe() {
-  const ingredients = document.getElementById("ingredients");
-  ingredients.innerHTML = "";
-  for (let i = 0; i < step*2 && i < ingredientsList.length; i++) {
-    const li = document.createElement("li");
-    li.textContent = ingredientsList[i];
-    ingredients.appendChild(li);
-  }
+function answer(choice) {
+    const c = questions[index];
 
-  const stepsEl = document.getElementById("steps");
-  stepsEl.innerHTML = "";
-  for (let i = 0; i < step*2 && i < stepsList.length; i++) {
-    const li = document.createElement("li");
-    li.textContent = stepsList[i];
-    stepsEl.appendChild(li);
-  }
+    if (choice === c.answer) {
+        document.getElementById("correctSound").play();
+        points++;
+        ingredients.push("• " + c.ingredient);
 
-  document.getElementById("recipe").classList.remove("hidden");
+        document.getElementById("result").innerText =
+            "Rigtigt! Du fik: " + c.ingredient;
+    } else {
+        document.getElementById("wrongSound").play();
+        document.getElementById("result").innerText =
+            "Forkert – men du kan stadig klare den!";
+    }
+
+    document.getElementById("ingredients").innerText =
+        "Ingredienser indsamlet:\n" + ingredients.join("\n");
+
+    document.getElementById("points").innerText =
+        "Point: " + points;
+
+    setTimeout(loadNext, 1000);
 }
 
-function endMessage() {
-  const box = document.getElementById("endMessage");
-  box.classList.remove("hidden");
-  box.innerHTML = `
-    Super flot klaret.<br><br>
-    Fisk og laks er fyldt med omega-3, som styrker hjernen,
-    forbedrer hukommelsen og øger koncentrationen.<br><br>
-    Det betyder, at du kan spise dig til mere energi og en bedre karakter –
-    noget der hjælper dig i skolen.
-  `;
+function endScreen() {
+    document.getElementById("quiz").innerHTML = "";
+    document.getElementById("result").innerText = "";
+    document.getElementById("ingredients").innerText =
+        "Alle ingredienser til ingefærshotten:\n" + ingredients.join("\n");
+
+    document.getElementById("endText").innerText =
+        "Ingefær er fyldt med antioxidanter og anti-inflammatoriske stoffer, som styrker immunforsvaret og giver dig mere energi i skolen. " +
+        "Det kan hjælpe dig med at få en bedre koncentration og dermed en bedre karakter.\n\nTake a shot!";
 }
+
+// Start med første spørgsmål med det samme
+loadNext();
 </script>
-
 </body>
 </html>
-
